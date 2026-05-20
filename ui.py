@@ -5,7 +5,7 @@ from tkinter.scrolledtext import ScrolledText
 
 from ws_client import WebSocketManager
 from http_client import HttpClient
-from utilities import AppLogger, DEFAULT_COMMANDS
+from utilities import AppLogger, DEFAULT_COMMANDS, validate_handshake_payload
 
 
 class AppUI:
@@ -114,10 +114,21 @@ class AppUI:
         ttk.Button(frame, text="Handshake", command=self.send_handshake).grid(row=0, column=4, sticky="ew", padx=6, pady=6)
 
     def send_handshake(self) -> None:
+        """
+        Send a manual handshake message.
+        Validates payload structure before sending.
+        """
         payload = self._parse_request_json()
-        if payload is None or payload.get("action") != "handshake":
-            self.logger.log("Invalid handshake payload.")
+        if payload is None:
+            self.logger.log("Cannot send handshake: invalid JSON in request textbox.")
             return
+        
+        # Validate handshake payload
+        is_valid, error_msg = validate_handshake_payload(payload)
+        if not is_valid:
+            self.logger.log(f"Cannot send handshake: {error_msg}")
+            return
+        
         self.ws_manager.send_handshake(payload)
 
     def _build_log_section(self) -> None:
