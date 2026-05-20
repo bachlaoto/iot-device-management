@@ -1,8 +1,10 @@
 import json
 import threading
 from typing import Callable, Optional
+from datetime import datetime
 
 from websocket import WebSocketApp
+from utilities import validate_handshake_payload
 
 
 class WebSocketManager:
@@ -69,6 +71,29 @@ class WebSocketManager:
         except Exception as exc:
             self.logger.log(f"WebSocket send error: {exc}")
 
+    def send_handshake(self, payload=None):
+        """
+        Send a handshake message to establish initial communication contract.
+        
+        Args:
+            payload: Optional handshake payload dict. If None, uses defaults.
+                    Must contain: action, client_id, timestamp
+        """
+        if payload is None:
+            payload = {
+                "action": "handshake",
+                "client_id": "default-client-id",
+                "timestamp": datetime.now().isoformat(),
+            }
+        
+        # Validate handshake payload
+        is_valid, error_msg = validate_handshake_payload(payload)
+        if not is_valid:
+            self.logger.log(f"Handshake validation error: {error_msg}")
+            return
+        
+        self.send_json(payload)
+
     def _set_connected(self, value: bool) -> None:
         self.connected = value
         if self.on_status_change:
@@ -77,6 +102,8 @@ class WebSocketManager:
     def _on_open(self, _ws) -> None:
         self._set_connected(True)
         self.logger.log("WebSocket connected.")
+        self.logger.log("Sending auto-handshake message...")
+        self.send_handshake()
 
     def _on_message(self, _ws, message: str) -> None:
         if self.on_message:
