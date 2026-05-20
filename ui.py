@@ -104,13 +104,21 @@ class AppUI:
     def _build_action_buttons(self) -> None:
         frame = ttk.Frame(self.root)
         frame.grid(row=4, column=0, sticky="ew", padx=12, pady=6)
-        for idx in range(4):
+        for idx in range(5):
             frame.columnconfigure(idx, weight=1)
 
         ttk.Button(frame, text="Connect", command=self.connect).grid(row=0, column=0, sticky="ew", padx=6, pady=6)
         ttk.Button(frame, text="Disconnect", command=self.disconnect).grid(row=0, column=1, sticky="ew", padx=6, pady=6)
         ttk.Button(frame, text="Send", command=self.send_websocket).grid(row=0, column=2, sticky="ew", padx=6, pady=6)
         ttk.Button(frame, text="Send HTTP", command=self.send_http).grid(row=0, column=3, sticky="ew", padx=6, pady=6)
+        ttk.Button(frame, text="Handshake", command=self.send_handshake).grid(row=0, column=4, sticky="ew", padx=6, pady=6)
+
+    def send_handshake(self) -> None:
+        payload = self._parse_request_json()
+        if payload is None or payload.get("action") != "handshake":
+            self.logger.log("Invalid handshake payload.")
+            return
+        self.ws_manager.send_handshake(payload)
 
     def _build_log_section(self) -> None:
         frame = ttk.LabelFrame(self.root, text="Logs")

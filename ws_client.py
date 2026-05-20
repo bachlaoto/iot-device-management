@@ -1,6 +1,7 @@
 import json
 import threading
 from typing import Callable, Optional
+from datetime import datetime
 
 from websocket import WebSocketApp
 
@@ -69,6 +70,15 @@ class WebSocketManager:
         except Exception as exc:
             self.logger.log(f"WebSocket send error: {exc}")
 
+    def send_handshake(self, payload=None):
+        if payload is None:
+            payload = {
+                "action": "handshake",
+                "client_id": "default-client-id",
+                "timestamp": datetime.now().isoformat(),
+            }
+        self.send_json(payload)
+
     def _set_connected(self, value: bool) -> None:
         self.connected = value
         if self.on_status_change:
@@ -77,6 +87,7 @@ class WebSocketManager:
     def _on_open(self, _ws) -> None:
         self._set_connected(True)
         self.logger.log("WebSocket connected.")
+        self.send_handshake()
 
     def _on_message(self, _ws, message: str) -> None:
         if self.on_message:

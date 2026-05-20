@@ -45,6 +45,14 @@ DEFAULT_COMMANDS = [
             "timeout": 10,
         },
     },
+    {
+        "name": "Handshake",
+        "payload": {
+            "action": "handshake",
+            "client_id": "replace-with-client-id",
+            "timestamp": "2026-05-20T00:00:00Z",
+        },
+    },
 ]
 
 
